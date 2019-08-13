@@ -102,4 +102,18 @@ defmodule ExObfuscatorTest do
     assert ExObfuscator.call(input, blacklist) ==
              expected_output
   end
+
+  test "don't obfuscate nil vals" do
+    input = %{
+      "empty" => nil
+    }
+
+    expected_output = %{
+      "empty" => nil
+    }
+
+    blacklist = ~w(empty)
+
+    assert ExObfuscator.call(input, blacklist) == expected_output
+  end
 end

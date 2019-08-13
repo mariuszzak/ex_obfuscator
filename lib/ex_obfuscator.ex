@@ -13,6 +13,8 @@ defmodule ExObfuscator do
     end
   end
 
+  defp obfuscate_value(val) when is_nil(val), do: nil
+
   defp obfuscate_value(val) do
     str_length = String.length(val)
 
