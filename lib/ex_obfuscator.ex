@@ -56,32 +56,17 @@ defimpl ExObfuscator, for: Tuple do
   def call(val, _blacklist), do: val
 end
 
-defimpl ExObfuscator, for: Integer do
+defimpl ExObfuscator, for: Atom do
+  def call(nil, _blacklist), do: nil
+  def call(val, _blacklist) when is_boolean(val), do: "***"
+  def call(val, _blacklist), do: val
+end
+
+defimpl ExObfuscator, for: [Integer, Float] do
   def call(_val, _blacklist), do: "***"
 end
 
-defimpl ExObfuscator, for: Atom do
-  def call(nil, _blacklist), do: nil
-  def call(val, _blacklist), do: val
-end
-
-defimpl ExObfuscator, for: Float do
-  def call(val, _blacklist), do: val
-end
-
-defimpl ExObfuscator, for: Function do
-  def call(val, _blacklist), do: val
-end
-
-defimpl ExObfuscator, for: PID do
-  def call(val, _blacklist), do: val
-end
-
-defimpl ExObfuscator, for: Port do
-  def call(val, _blacklist), do: val
-end
-
-defimpl ExObfuscator, for: Reference do
+defimpl ExObfuscator, for: [Function, PID, Port, Reference] do
   def call(val, _blacklist), do: val
 end
 

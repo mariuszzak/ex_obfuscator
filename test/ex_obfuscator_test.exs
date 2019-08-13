@@ -133,19 +133,25 @@ defmodule ExObfuscatorTest do
     assert ExObfuscator.call(123) == "***"
 
     input = %{
-      "numeric" => 123
+      "integer" => 123,
+      "float" => 1.23
     }
 
     expected_output = %{
-      "numeric" => "***"
+      "integer" => "***",
+      "float" => "***"
     }
 
-    blacklist = ~w(numeric)
+    blacklist = ~w(integer float)
 
     assert ExObfuscator.call(input, blacklist) == expected_output
   end
 
-  test "obfuscates a boolean value"
+  test "obfuscates a boolean value" do
+    assert ExObfuscator.call(true) == "***"
+    assert ExObfuscator.call(false) == "***"
+    assert ExObfuscator.call(%{blacklisted: false}) == %{blacklisted: "***"}
+  end
 
   test "obfuscates a struct" do
     input = %FooStruct{
