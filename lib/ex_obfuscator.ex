@@ -1,4 +1,5 @@
 defprotocol ExObfuscator do
+  @fallback_to_any true
   def call(value, blacklist \\ nil)
 end
 
@@ -61,6 +62,7 @@ end
 
 defimpl ExObfuscator, for: Atom do
   def call(nil, _blacklist), do: nil
+  def call(val, _blacklist), do: val
 end
 
 defimpl ExObfuscator, for: Float do
@@ -84,5 +86,16 @@ defimpl ExObfuscator, for: Reference do
 end
 
 defimpl ExObfuscator, for: Any do
-  def call(val, _blacklist), do: val
+  @struct_name :__struct_name__
+
+  def call(%{__struct__: struct_key} = struct, blacklist) do
+    struct
+    |> Map.put(@struct_name, struct_key)
+    |> Map.from_struct()
+    |> ExObfuscator.call(blacklist)
+    |> revert_struct()
+  end
+
+  defp revert_struct(%{@struct_name => struct_name} = struct_attrs),
+    do: struct(struct_name, Map.delete(struct_attrs, @struct_name))
 end

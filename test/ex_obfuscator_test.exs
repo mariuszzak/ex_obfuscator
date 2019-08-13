@@ -2,6 +2,12 @@ defmodule ExObfuscatorTest do
   use ExUnit.Case
   doctest ExObfuscator
 
+  defmodule FooStruct do
+    defstruct [:string, :integer, :atom, :map, :nested_map, :not_blacklisted]
+  end
+
+  alias ExObfuscatorTest.FooStruct
+
   test "obfuscates a map with blacklisted atom keys" do
     input = %{
       blacklisted_key: "Some value",
@@ -140,7 +146,55 @@ defmodule ExObfuscatorTest do
   end
 
   test "obfuscates a boolean value"
-  test "obfuscates a struct"
+
+  test "obfuscates a struct" do
+    input = %FooStruct{
+      string: "FooFooFoo",
+      integer: 123,
+      atom: :foo_bar_baz,
+      map: %{
+        foo: "foofoofoo",
+        bar: "barbarbar",
+        baz: "bazbazbaz",
+        nested: %{
+          foo: "foofoofoo",
+          bar: "barbarbar",
+          baz: "bazbazbaz"
+        }
+      },
+      nested_map: %{
+        string: "FooFooFoo",
+        not_blacklisted: "other value"
+      },
+      not_blacklisted: "other value"
+    }
+
+    expected_output = %FooStruct{
+      string: "Foo******",
+      integer: "***",
+      atom: :foo_bar_baz,
+      map: %{
+        foo: "foo******",
+        bar: "bar******",
+        baz: "baz******",
+        nested: %{
+          foo: "foo******",
+          bar: "bar******",
+          baz: "baz******"
+        }
+      },
+      nested_map: %{
+        string: "Foo******",
+        not_blacklisted: "other value"
+      },
+      not_blacklisted: "other value"
+    }
+
+    blacklist = ~w(string integer atom map)
+
+    assert ExObfuscator.call(input, blacklist) == expected_output
+  end
+
   test "obfuscates a tuple"
 
   test "obfuscates a nested map" do
