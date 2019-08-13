@@ -14,22 +14,6 @@ defimpl ExObfuscator, for: BitString do
   end
 end
 
-defimpl ExObfuscator, for: Integer do
-  def call(_val, _blacklist), do: "***"
-end
-
-defimpl ExObfuscator, for: Atom do
-  def call(nil, _blacklist), do: nil
-end
-
-defimpl ExObfuscator, for: Float do
-  def call(val, _blacklist), do: val
-end
-
-defimpl ExObfuscator, for: Function do
-  def call(val, _blacklist), do: val
-end
-
 defimpl ExObfuscator, for: List do
   def call(val, _blacklist), do: val
 end
@@ -64,6 +48,26 @@ defimpl ExObfuscator, for: Map do
   defp to_strings(list) when is_list(list), do: Enum.map(list, &to_string/1)
 end
 
+defimpl ExObfuscator, for: Tuple do
+  def call(val, _blacklist), do: val
+end
+
+defimpl ExObfuscator, for: Integer do
+  def call(_val, _blacklist), do: "***"
+end
+
+defimpl ExObfuscator, for: Atom do
+  def call(nil, _blacklist), do: nil
+end
+
+defimpl ExObfuscator, for: Float do
+  def call(val, _blacklist), do: val
+end
+
+defimpl ExObfuscator, for: Function do
+  def call(val, _blacklist), do: val
+end
+
 defimpl ExObfuscator, for: PID do
   def call(val, _blacklist), do: val
 end
@@ -73,10 +77,6 @@ defimpl ExObfuscator, for: Port do
 end
 
 defimpl ExObfuscator, for: Reference do
-  def call(val, _blacklist), do: val
-end
-
-defimpl ExObfuscator, for: Tuple do
   def call(val, _blacklist), do: val
 end
 
