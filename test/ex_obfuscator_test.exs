@@ -2,7 +2,17 @@ defmodule ExObfuscatorTest do
   use ExUnit.Case
   doctest ExObfuscator
 
-  test "greets the world" do
-    assert ExObfuscator.hello() == :world
+  test "obfuscates a map with blacklisted keys" do
+    input = %{
+      blacklisted_key: "Some value",
+      regular_key: "Other value"
+    }
+
+    expected_output = %{
+      blacklisted_key: "Som*******",
+      regular_key: "Other value"
+    }
+
+    assert ExObfuscator.call(input, [:blacklisted_key]) == expected_output
   end
 end
