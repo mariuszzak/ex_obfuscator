@@ -1,6 +1,10 @@
 defmodule ExObfuscator do
-  def call(input_map, blacklisted_keys) do
-    input_map
+  def call(input, blacklisted_keys \\ [])
+  def call(input, _blacklisted_keys) when is_binary(input), do: obfuscate_value(input)
+  def call(input, _blacklisted_keys) when is_integer(input), do: "***"
+
+  def call(input, blacklisted_keys) do
+    input
     |> Enum.map(fn {key, val} -> maybe_obfuscate(key, val, blacklisted_keys) end)
     |> Enum.into(%{})
   end
@@ -14,6 +18,7 @@ defmodule ExObfuscator do
   end
 
   defp obfuscate_value(val) when is_nil(val), do: nil
+  defp obfuscate_value(val) when is_integer(val), do: "***"
 
   defp obfuscate_value(val) do
     str_length = String.length(val)

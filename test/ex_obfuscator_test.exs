@@ -117,8 +117,28 @@ defmodule ExObfuscatorTest do
     assert ExObfuscator.call(input, blacklist) == expected_output
   end
 
+  test "obfuscates a string value" do
+    assert ExObfuscator.call("FooBarBaz") == "Foo******"
+  end
+
   test "obfuscates a very long string value"
-  test "obfuscates a numeric value"
+
+  test "obfuscates a numeric value" do
+    assert ExObfuscator.call(123) == "***"
+
+    input = %{
+      "numeric" => 123
+    }
+
+    expected_output = %{
+      "numeric" => "***"
+    }
+
+    blacklist = ~w(numeric)
+
+    assert ExObfuscator.call(input, blacklist) == expected_output
+  end
+
   test "obfuscates a boolean value"
   test "obfuscates a struct"
   test "obfuscates a tuple"
