@@ -116,4 +116,23 @@ defmodule ExObfuscatorTest do
 
     assert ExObfuscator.call(input, blacklist) == expected_output
   end
+
+  test "obfuscates a very long string value"
+  test "obfuscates a numeric value"
+  test "obfuscates a boolean value"
+  test "obfuscates a struct"
+  test "obfuscates a tuple"
+  test "obfuscates a nested map"
+  test "obfuscates a nested map with a tuple"
+  test "obfuscates a nested map with a tuple with a map"
+  test "obfuscates a tuple with a map"
+  test "obfuscates a tuple with a tuple"
+  test "obfuscates a list"
+  test "obfuscates a list of maps"
+  test "obfuscates a list of tuples"
+  test "obfuscates a list of structs"
+  test "allows to completely drop a key"
+  test "allows to force obfuscating the whole value of a specific key"
+  test "allows to configure the visible string length"
+  test "allows to configure the max length of obfuscated value"
 end
