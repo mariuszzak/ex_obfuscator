@@ -201,7 +201,11 @@ defmodule ExObfuscatorTest do
     assert ExObfuscator.call(input, blacklist) == expected_output
   end
 
-  test "obfuscates a tuple"
+  test "obfuscates a tuple" do
+    input = {:foo, :bar, :baz}
+    expected_output = {:foo, :bar, :baz}
+    assert ExObfuscator.call(input) == expected_output
+  end
 
   test "obfuscates a nested map" do
     input = %{
@@ -257,7 +261,40 @@ defmodule ExObfuscatorTest do
     assert ExObfuscator.call(input, [:blacklisted]) == expected_output
   end
 
-  test "obfuscates a nested map with a tuple"
+  test "obfuscates a nested map with a tuple" do
+    input = {%{blacklisted: "foofoofoo", not_blacklisted: "barbarbar"}}
+    expected_output = {%{blacklisted: "foo******", not_blacklisted: "barbarbar"}}
+    assert ExObfuscator.call(input, [:blacklisted]) == expected_output
+
+    input =
+      {%{blacklisted: "foofoofoo", not_blacklisted: "barbarbar"},
+       %{blacklisted: "foofoofoo", not_blacklisted: "barbarbar"}}
+
+    expected_output =
+      {%{blacklisted: "foo******", not_blacklisted: "barbarbar"},
+       %{blacklisted: "foo******", not_blacklisted: "barbarbar"}}
+
+    assert ExObfuscator.call(input, [:blacklisted]) == expected_output
+
+    input =
+      {%{blacklisted: "foofoofoo", not_blacklisted: "barbarbar"},
+       %{blacklisted: "foofoofoo", not_blacklisted: "barbarbar"},
+       %{blacklisted: "foofoofoo", not_blacklisted: "barbarbar"},
+       %{blacklisted: "foofoofoo", not_blacklisted: "barbarbar"},
+       %{blacklisted: "foofoofoo", not_blacklisted: "barbarbar"},
+       %{blacklisted: "foofoofoo", not_blacklisted: "barbarbar"}}
+
+    expected_output =
+      {%{blacklisted: "foo******", not_blacklisted: "barbarbar"},
+       %{blacklisted: "foo******", not_blacklisted: "barbarbar"},
+       %{blacklisted: "foo******", not_blacklisted: "barbarbar"},
+       %{blacklisted: "foo******", not_blacklisted: "barbarbar"},
+       %{blacklisted: "foo******", not_blacklisted: "barbarbar"},
+       %{blacklisted: "foo******", not_blacklisted: "barbarbar"}}
+
+    assert ExObfuscator.call(input, [:blacklisted]) == expected_output
+  end
+
   test "obfuscates a nested map with a tuple with a map"
   test "obfuscates a tuple with a map"
   test "obfuscates a tuple with a tuple"

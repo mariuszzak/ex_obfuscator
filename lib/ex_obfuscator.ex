@@ -53,7 +53,12 @@ defimpl ExObfuscator, for: Map do
 end
 
 defimpl ExObfuscator, for: Tuple do
-  def call(val, _blacklist), do: val
+  def call(val, blacklist) do
+    val
+    |> Tuple.to_list()
+    |> Enum.map(fn element -> ExObfuscator.call(element, blacklist) end)
+    |> List.to_tuple()
+  end
 end
 
 defimpl ExObfuscator, for: Atom do
