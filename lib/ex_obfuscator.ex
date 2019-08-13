@@ -7,11 +7,14 @@ defimpl ExObfuscator, for: BitString do
     str_length = String.length(val)
 
     cond do
-      str_length > 5 -> String.slice(val, 0..2) <> String.duplicate("*", str_length - 3)
+      str_length > 5 -> obfuscate(val, str_length)
       str_length == 0 -> ""
       str_length -> "***"
     end
   end
+
+  defp obfuscate(val, str_length),
+    do: String.slice(val, 0..2) <> String.duplicate("*", str_length - 3)
 end
 
 defimpl ExObfuscator, for: List do
