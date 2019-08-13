@@ -14,7 +14,13 @@ defmodule ExObfuscator do
   end
 
   defp obfuscate_value(val) do
-    String.slice(val, 0..2) <> String.duplicate("*", String.length(val) - 3)
+    str_length = String.length(val)
+
+    cond do
+      str_length > 5 -> String.slice(val, 0..2) <> String.duplicate("*", str_length - 3)
+      str_length == 0 -> ""
+      str_length -> "***"
+    end
   end
 
   defp to_strings(list) when is_list(list), do: Enum.map(list, &to_string/1)

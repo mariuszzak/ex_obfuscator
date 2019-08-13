@@ -77,4 +77,29 @@ defmodule ExObfuscatorTest do
 
     assert ExObfuscator.call(input, [:blacklisted_key1, "blacklisted_key2"]) == expected_output
   end
+
+  test "obfuscates short strings completely" do
+    input = %{
+      "short1" => "123456",
+      "short2" => "12345",
+      "short3" => "1234",
+      "short4" => "12",
+      "short5" => "1",
+      "empty" => ""
+    }
+
+    expected_output = %{
+      "short1" => "123***",
+      "short2" => "***",
+      "short3" => "***",
+      "short4" => "***",
+      "short5" => "***",
+      "empty" => ""
+    }
+
+    blacklist = ~w(short1 short2 short3 short4 short5 empty)
+
+    assert ExObfuscator.call(input, blacklist) ==
+             expected_output
+  end
 end
