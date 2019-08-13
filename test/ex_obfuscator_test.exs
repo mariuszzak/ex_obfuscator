@@ -135,4 +135,7 @@ defmodule ExObfuscatorTest do
   test "allows to force obfuscating the whole value of a specific key"
   test "allows to configure the visible string length"
   test "allows to configure the max length of obfuscated value"
+  test "allows to configure the number of characters when the value will be obfuscated totally"
+  test "allows to configure if nil values are supposed to stay nil or be treated as filled value"
+  test "allows to configure case sensitivity"
 end
