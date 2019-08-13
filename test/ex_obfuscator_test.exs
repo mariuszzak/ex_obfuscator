@@ -142,7 +142,61 @@ defmodule ExObfuscatorTest do
   test "obfuscates a boolean value"
   test "obfuscates a struct"
   test "obfuscates a tuple"
-  test "obfuscates a nested map"
+
+  test "obfuscates a nested map" do
+    input = %{
+      foo: %{
+        bar: %{
+          baz: "bazbazbaz"
+        }
+      },
+      regular_key: "Other value"
+    }
+
+    expected_output = %{
+      foo: %{
+        bar: %{
+          baz: "baz******"
+        }
+      },
+      regular_key: "Other value"
+    }
+
+    assert ExObfuscator.call(input, [:baz]) == expected_output
+  end
+
+  test "obfuscates all key/vals in when a map is a value of blacklisted key" do
+    input = %{
+      blacklisted: %{
+        foo: "foofoofoo",
+        bar: "barbarbar",
+        baz: "bazbazbaz",
+        nested: %{
+          foo: "foofoofoo",
+          bar: "barbarbar",
+          baz: "bazbazbaz"
+        }
+      },
+      regular_key: "Other value"
+    }
+
+    expected_output = %{
+      blacklisted: %{
+        foo: "foo******",
+        bar: "bar******",
+        baz: "baz******",
+        nested: %{
+          foo: "foo******",
+          bar: "bar******",
+          baz: "baz******"
+        }
+      },
+      regular_key: "Other value"
+    }
+
+    assert ExObfuscator.call(input, [:blacklisted]) == expected_output
+  end
+
   test "obfuscates a nested map with a tuple"
   test "obfuscates a nested map with a tuple with a map"
   test "obfuscates a tuple with a map"

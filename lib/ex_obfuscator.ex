@@ -35,6 +35,10 @@ defimpl ExObfuscator, for: List do
 end
 
 defimpl ExObfuscator, for: Map do
+  def call(input, nil) do
+    call(input, :all)
+  end
+
   def call(input, blacklisted_keys) do
     input
     |> Enum.map(fn {key, val} -> maybe_obfuscate(key, val, blacklisted_keys) end)
@@ -42,10 +46,18 @@ defimpl ExObfuscator, for: Map do
   end
 
   defp maybe_obfuscate(key, val, blacklisted_keys) do
-    if to_string(key) in to_strings(blacklisted_keys) do
-      {key, ExObfuscator.call(val)}
-    else
-      {key, val}
+    cond do
+      blacklisted_keys == :all ->
+        {key, ExObfuscator.call(val)}
+
+      to_string(key) in to_strings(blacklisted_keys) ->
+        {key, ExObfuscator.call(val)}
+
+      is_map(val) ->
+        {key, ExObfuscator.call(val, blacklisted_keys)}
+
+      {key, val} ->
+        {key, val}
     end
   end
 
