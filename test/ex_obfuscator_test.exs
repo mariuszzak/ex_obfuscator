@@ -45,4 +45,20 @@ defmodule ExObfuscatorTest do
 
     assert ExObfuscator.call(input, ["blacklisted_key1", "blacklisted_key2"]) == expected_output
   end
+
+  test "obfuscates mix of atom and string keys in a map" do
+    input = %{
+      "blacklisted_key1" => "Some value",
+      :blacklisted_key2 => "Some value",
+      "regular_key" => "Other value"
+    }
+
+    expected_output = %{
+      "blacklisted_key1" => "Som*******",
+      :blacklisted_key2 => "Som*******",
+      "regular_key" => "Other value"
+    }
+
+    assert ExObfuscator.call(input, ["blacklisted_key1", :blacklisted_key2]) == expected_output
+  end
 end
