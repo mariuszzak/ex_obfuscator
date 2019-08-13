@@ -61,4 +61,20 @@ defmodule ExObfuscatorTest do
 
     assert ExObfuscator.call(input, ["blacklisted_key1", :blacklisted_key2]) == expected_output
   end
+
+  test "obfuscates also keys that are opposite type" do
+    input = %{
+      "blacklisted_key1" => "Some value",
+      :blacklisted_key2 => "Some value",
+      "regular_key" => "Other value"
+    }
+
+    expected_output = %{
+      "blacklisted_key1" => "Som*******",
+      :blacklisted_key2 => "Som*******",
+      "regular_key" => "Other value"
+    }
+
+    assert ExObfuscator.call(input, [:blacklisted_key1, "blacklisted_key2"]) == expected_output
+  end
 end
