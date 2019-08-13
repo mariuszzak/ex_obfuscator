@@ -76,7 +76,7 @@ defimpl ExObfuscator, for: [Function, PID, Port, Reference] do
 end
 
 defimpl ExObfuscator, for: Any do
-  @struct_name :__struct_name__
+  @struct_name :__ex_obf_struct__
 
   def call(%{__struct__: struct_key} = struct, blacklist) do
     struct
