@@ -1,31 +1,40 @@
-defmodule ExObfuscator do
-  defprotocol Obfuscate do
-    def call(value)
-  end
+defprotocol ExObfuscator do
+  def call(value, blacklist \\ nil)
+end
 
-  defimpl Obfuscate, for: BitString do
-    def call(val) do
-      str_length = String.length(val)
+defimpl ExObfuscator, for: BitString do
+  def call(val, _blacklist) do
+    str_length = String.length(val)
 
-      cond do
-        str_length > 5 -> String.slice(val, 0..2) <> String.duplicate("*", str_length - 3)
-        str_length == 0 -> ""
-        str_length -> "***"
-      end
+    cond do
+      str_length > 5 -> String.slice(val, 0..2) <> String.duplicate("*", str_length - 3)
+      str_length == 0 -> ""
+      str_length -> "***"
     end
   end
+end
 
-  defimpl Obfuscate, for: Integer do
-    def call(_val), do: "***"
-  end
+defimpl ExObfuscator, for: Integer do
+  def call(_val, _blacklist), do: "***"
+end
 
-  defimpl Obfuscate, for: Atom do
-    def call(nil), do: nil
-  end
+defimpl ExObfuscator, for: Atom do
+  def call(nil, _blacklist), do: nil
+end
 
-  def call(input, blacklisted_keys \\ nil)
-  def call(input, nil), do: Obfuscate.call(input)
+defimpl ExObfuscator, for: Float do
+  def call(val, _blacklist), do: val
+end
 
+defimpl ExObfuscator, for: Function do
+  def call(val, _blacklist), do: val
+end
+
+defimpl ExObfuscator, for: List do
+  def call(val, _blacklist), do: val
+end
+
+defimpl ExObfuscator, for: Map do
   def call(input, blacklisted_keys) do
     input
     |> Enum.map(fn {key, val} -> maybe_obfuscate(key, val, blacklisted_keys) end)
@@ -34,11 +43,31 @@ defmodule ExObfuscator do
 
   defp maybe_obfuscate(key, val, blacklisted_keys) do
     if to_string(key) in to_strings(blacklisted_keys) do
-      {key, Obfuscate.call(val)}
+      {key, ExObfuscator.call(val)}
     else
       {key, val}
     end
   end
 
   defp to_strings(list) when is_list(list), do: Enum.map(list, &to_string/1)
+end
+
+defimpl ExObfuscator, for: PID do
+  def call(val, _blacklist), do: val
+end
+
+defimpl ExObfuscator, for: Port do
+  def call(val, _blacklist), do: val
+end
+
+defimpl ExObfuscator, for: Reference do
+  def call(val, _blacklist), do: val
+end
+
+defimpl ExObfuscator, for: Tuple do
+  def call(val, _blacklist), do: val
+end
+
+defimpl ExObfuscator, for: Any do
+  def call(val, _blacklist), do: val
 end
