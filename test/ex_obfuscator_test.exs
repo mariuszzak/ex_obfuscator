@@ -338,8 +338,35 @@ defmodule ExObfuscatorTest do
     assert ExObfuscator.call(input, [:blacklisted]) == expected_output
   end
 
-  test "obfuscates a tuple with a map"
-  test "obfuscates a tuple with a tuple"
+  test "obfuscates a tuple with a map" do
+    input =
+      {%{blacklisted: "foofoofoo", not_blacklisted: "barbarbar"},
+       %{blacklisted: "foofoofoo", not_blacklisted: "barbarbar"}}
+
+    expected_output =
+      {%{not_blacklisted: "barbarbar", blacklisted: "foo******"},
+       %{not_blacklisted: "barbarbar", blacklisted: "foo******"}}
+
+    assert ExObfuscator.call(input, [:blacklisted]) == expected_output
+  end
+
+  test "obfuscates a tuple with a tuple" do
+    input =
+      {{%{blacklisted: "foofoofoo", not_blacklisted: "barbarbar"},
+        %{blacklisted: "foofoofoo", not_blacklisted: "barbarbar"}}}
+
+    expected_output =
+      {{%{not_blacklisted: "barbarbar", blacklisted: "foo******"},
+        %{not_blacklisted: "barbarbar", blacklisted: "foo******"}}}
+
+    assert ExObfuscator.call(input, [:blacklisted]) == expected_output
+
+    input = {{"foofoofoo", "barbarbar"}}
+
+    expected_output = {{"foo******", "bar******"}}
+
+    assert ExObfuscator.call(input, [:blacklisted]) == expected_output
+  end
 
   test "obfuscates a list" do
     input = ["foofoofoo", "barbarbar", "bazbazbaz"]
@@ -399,7 +426,61 @@ defmodule ExObfuscatorTest do
     assert ExObfuscator.call(input, [:blacklisted]) == expected_output
   end
 
-  test "obfuscates a list of structs"
+  test "obfuscates a list of structs" do
+    struct = %FooStruct{
+      string: "FooFooFoo",
+      integer: 123,
+      atom: :foo_bar_baz,
+      map: %{
+        foo: "foofoofoo",
+        bar: "barbarbar",
+        baz: "bazbazbaz",
+        nested: %{
+          foo: "foofoofoo",
+          bar: "barbarbar",
+          baz: "bazbazbaz"
+        }
+      },
+      nested_map: %{
+        string: "FooFooFoo",
+        not_blacklisted: "other value"
+      },
+      not_blacklisted: "other value"
+    }
+
+    input = [struct, struct]
+
+    expected_output = [
+      %FooStruct{
+        atom: :foo_bar_baz,
+        not_blacklisted: "other value",
+        integer: "***",
+        map: %{
+          bar: "bar******",
+          baz: "baz******",
+          foo: "foo******",
+          nested: %{bar: "bar******", baz: "baz******", foo: "foo******"}
+        },
+        nested_map: %{not_blacklisted: "other value", string: "Foo******"},
+        string: "Foo******"
+      },
+      %FooStruct{
+        atom: :foo_bar_baz,
+        not_blacklisted: "other value",
+        integer: "***",
+        map: %{
+          bar: "bar******",
+          baz: "baz******",
+          foo: "foo******",
+          nested: %{bar: "bar******", baz: "baz******", foo: "foo******"}
+        },
+        nested_map: %{not_blacklisted: "other value", string: "Foo******"},
+        string: "Foo******"
+      }
+    ]
+
+    assert ExObfuscator.call(input, ~w(string integer atom map)) == expected_output
+  end
 
   test "obfuscates a keyword list" do
     input = [blacklisted: "foofoofoo", not_blacklisted: "barbarbar"]
@@ -494,7 +575,7 @@ defmodule ExObfuscatorTest do
       blacklisted: %{
         complex_map: %{
           complex_map: nil,
-          struct: %ExObfuscatorTest.FooStruct{
+          struct: %FooStruct{
             atom: :foo_bar_baz,
             integer: "***",
             map: %{
@@ -507,7 +588,7 @@ defmodule ExObfuscatorTest do
             not_blacklisted: "oth********",
             string: "Foo******"
           },
-          struct2: %ExObfuscatorTest.FooStruct{
+          struct2: %FooStruct{
             atom: :foo_bar_baz,
             integer: "***",
             map: %{list: ["***", "***", "***"]},
@@ -517,7 +598,7 @@ defmodule ExObfuscatorTest do
           },
           tuple:
             {"***", "***",
-             %ExObfuscatorTest.FooStruct{
+             %FooStruct{
                atom: :foo_bar_baz,
                integer: "***",
                map: %{keyword_list: [foo: "***", baz: "***"], list: ["***", "***", "***"]},
@@ -526,7 +607,7 @@ defmodule ExObfuscatorTest do
                string: "Foo******"
              }}
         },
-        struct: %ExObfuscatorTest.FooStruct{
+        struct: %FooStruct{
           atom: :foo_bar_baz,
           integer: "***",
           map: %{
@@ -539,7 +620,7 @@ defmodule ExObfuscatorTest do
           not_blacklisted: "oth********",
           string: "Foo******"
         },
-        struct2: %ExObfuscatorTest.FooStruct{
+        struct2: %FooStruct{
           atom: :foo_bar_baz,
           integer: "***",
           map: %{list: ["***", "***", "***"]},
@@ -549,7 +630,7 @@ defmodule ExObfuscatorTest do
         },
         tuple:
           {"***", "***",
-           %ExObfuscatorTest.FooStruct{
+           %FooStruct{
              atom: :foo_bar_baz,
              integer: "***",
              map: %{keyword_list: [foo: "***", baz: "***"], list: ["***", "***", "***"]},
