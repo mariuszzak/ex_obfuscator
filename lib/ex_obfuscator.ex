@@ -1,23 +1,27 @@
 defprotocol ExObfuscator do
   @fallback_to_any true
-  def call(value, blacklist \\ nil)
+  def call(value, blacklist \\ nil, opts \\ [])
 end
 
 defimpl ExObfuscator, for: BitString do
   @num_of_visible_chars 3
   @max_string_length 20
 
-  def call(val, _blacklist) do
+  def call(val, _blacklist, opts \\ []) do
     str_length = String.length(val)
 
     cond do
-      str_length > 5 -> obfuscate(val, str_length)
+      str_length > 5 -> obfuscate(val, str_length, opts)
       str_length == 0 -> ""
       str_length -> "***"
     end
   end
 
-  defp obfuscate(val, str_length) do
+  defp obfuscate(_val, str_length, obfuscate_entire_value: true) do
+    "***" <> stars(str_length) <> maybe_dots(str_length)
+  end
+
+  defp obfuscate(val, str_length, _opts) do
     visible_chars(val) <> stars(str_length) <> maybe_dots(str_length)
   end
 
@@ -28,19 +32,22 @@ defimpl ExObfuscator, for: BitString do
 end
 
 defimpl ExObfuscator, for: [Map, List] do
-  def call(input, nil) do
+  def call(input, blacklisted_keys, opts \\ [])
+
+  def call(input, nil, _opts) do
     call(input, :all)
   end
 
-  def call(input, blacklisted_keys) when is_map(input), do: call(input, blacklisted_keys, %{})
+  def call(input, blacklisted_keys, opts) when is_map(input),
+    do: call(input, blacklisted_keys, opts, %{})
 
-  def call(input, blacklisted_keys) when is_list(input) do
+  def call(input, blacklisted_keys, opts) when is_list(input) do
     input
-    |> call(blacklisted_keys, [])
+    |> call(blacklisted_keys, opts, [])
     |> Enum.reverse()
   end
 
-  defp call(input, blacklisted_keys, final_type) do
+  defp call(input, blacklisted_keys, _opts, final_type) do
     input
     |> obfuscate(blacklisted_keys)
     |> Enum.into(final_type)
@@ -71,6 +78,9 @@ defimpl ExObfuscator, for: [Map, List] do
       should_drop_key?(key, blacklisted_keys) ->
         nil
 
+      should_obfuscate_entire_value?(key, blacklisted_keys) ->
+        {key, ExObfuscator.call(val, [], obfuscate_entire_value: true)}
+
       key_is_blacklisted?(key, blacklisted_keys) ->
         {key, ExObfuscator.call(val)}
 
@@ -92,6 +102,11 @@ defimpl ExObfuscator, for: [Map, List] do
 
   defp should_drop_key?(key, blacklisted_keys),
     do: Keyword.keyword?(blacklisted_keys) && Keyword.get(blacklisted_keys, key) == :drop
+
+  defp should_obfuscate_entire_value?(key, blacklisted_keys) do
+    Keyword.keyword?(blacklisted_keys) &&
+      Keyword.get(blacklisted_keys, key) == :obfuscate_entire_value
+  end
 
   defp key_is_blacklisted?(key, blacklisted_keys) do
     # TODO: consider generating a list with all
@@ -120,7 +135,7 @@ defimpl ExObfuscator, for: [Map, List] do
 end
 
 defimpl ExObfuscator, for: Tuple do
-  def call(val, blacklist) do
+  def call(val, blacklist, _opts) do
     val
     |> Tuple.to_list()
     |> Enum.map(fn element -> ExObfuscator.call(element, blacklist) end)
@@ -129,23 +144,23 @@ defimpl ExObfuscator, for: Tuple do
 end
 
 defimpl ExObfuscator, for: Atom do
-  def call(nil, _blacklist), do: nil
-  def call(val, _blacklist) when is_boolean(val), do: "***"
-  def call(val, _blacklist), do: val
+  def call(nil, _blacklist, _opts), do: nil
+  def call(val, _blacklist, _opts) when is_boolean(val), do: "***"
+  def call(val, _blacklist, _opts), do: val
 end
 
 defimpl ExObfuscator, for: [Integer, Float] do
-  def call(_val, _blacklist), do: "***"
+  def call(_val, _blacklist, _opts), do: "***"
 end
 
 defimpl ExObfuscator, for: [Function, PID, Port, Reference] do
-  def call(val, _blacklist), do: val
+  def call(val, _blacklist, _opts), do: val
 end
 
 defimpl ExObfuscator, for: Any do
   @struct_name :__ex_obf_struct__
 
-  def call(%{__struct__: struct_key} = struct, blacklist) do
+  def call(%{__struct__: struct_key} = struct, blacklist, _opts) do
     struct
     |> Map.put(@struct_name, struct_key)
     |> Map.from_struct()

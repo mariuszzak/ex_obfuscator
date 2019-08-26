@@ -734,7 +734,22 @@ defmodule ExObfuscatorTest do
     assert ExObfuscator.call(input, blacklist) == expected_output
   end
 
-  test "allows to force obfuscating the whole value of a specific key"
+  test "allows to force obfuscating the whole value of a specific key" do
+    input = %{
+      blacklisted_key: "Some value",
+      regular_key: "Other value"
+    }
+
+    expected_output = %{
+      blacklisted_key: "**********",
+      regular_key: "Other value"
+    }
+
+    blacklist = [blacklisted_key: :obfuscate_entire_value]
+
+    assert ExObfuscator.call(input, blacklist) == expected_output
+  end
+
   test "allows to configure the visible string length"
   test "allows to configure the max length of obfuscated value"
   test "allows to configure the number of characters when the value will be obfuscated totally"
