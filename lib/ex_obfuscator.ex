@@ -49,7 +49,7 @@ defimpl ExObfuscator, for: [Map, List] do
       is_map(key) ->
         {ExObfuscator.call(key, blacklisted_keys), ExObfuscator.call(val, blacklisted_keys)}
 
-      to_string(key) in to_strings(blacklisted_keys) ->
+      key_is_blacklisted?(key, blacklisted_keys) ->
         {key, ExObfuscator.call(val)}
 
       is_map(val) ->
@@ -64,6 +64,23 @@ defimpl ExObfuscator, for: [Map, List] do
   end
 
   defp to_strings(list) when is_list(list), do: Enum.map(list, &to_string/1)
+
+  defp key_is_blacklisted?(key, blacklisted_keys) do
+    # TODO: consider generating a list with all
+    # blacklisted_keys with all variations of any "case" instead
+    # of transforming each key into snake_case
+    cond do
+      to_string(key) in to_strings(blacklisted_keys) -> true
+      to_string(to_snake_case(key)) in to_strings(blacklisted_keys) -> true
+      true -> false
+    end
+  end
+
+  defp to_snake_case(key) do
+    key
+    |> to_string()
+    |> Recase.to_snake()
+  end
 end
 
 defimpl ExObfuscator, for: Tuple do

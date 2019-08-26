@@ -563,8 +563,70 @@ defmodule ExObfuscatorTest do
     assert ExObfuscator.call(input, [:blacklisted]) == expected_output
   end
 
-  test "obfuscates a camelCase keys even if blacklisted snake_case key"
-  test "obfuscates a kebab-case keys even if blacklisted snake_case key"
+  test "obfuscates a camelCase keys even if blacklisted snake_case key" do
+    input = %{
+      "blacklistedKey" => "Some value",
+      "blacklisted_key" => "Some value",
+      "regular_key" => "foo"
+    }
+
+    expected_output = %{
+      "blacklistedKey" => "Som*******",
+      "blacklisted_key" => "Som*******",
+      "regular_key" => "foo"
+    }
+
+    assert ExObfuscator.call(input, [:blacklisted_key]) == expected_output
+  end
+
+  test "obfuscates a kebab-case keys even if blacklisted snake_case key" do
+    input = %{
+      "blacklisted-key" => "Some value",
+      "blacklisted_key" => "Some value",
+      "regular_key" => "foo"
+    }
+
+    expected_output = %{
+      "blacklisted-key" => "Som*******",
+      "blacklisted_key" => "Som*******",
+      "regular_key" => "foo"
+    }
+
+    assert ExObfuscator.call(input, [:blacklisted_key]) == expected_output
+  end
+
+  test "obfuscates a UpperCamelCase keys even if blacklisted snake_case key" do
+    input = %{
+      "BlacklistedKey" => "Some value",
+      "blacklisted_key" => "Some value",
+      "regular_key" => "foo"
+    }
+
+    expected_output = %{
+      "BlacklistedKey" => "Som*******",
+      "blacklisted_key" => "Som*******",
+      "regular_key" => "foo"
+    }
+
+    assert ExObfuscator.call(input, [:blacklisted_key]) == expected_output
+  end
+
+  test "obfuscates a keys with spaces even if blacklisted snake_case key" do
+    input = %{
+      "blacklisted key" => "Some value",
+      "blacklisted_key" => "Some value",
+      "regular_key" => "foo"
+    }
+
+    expected_output = %{
+      "blacklisted key" => "Som*******",
+      "blacklisted_key" => "Som*******",
+      "regular_key" => "foo"
+    }
+
+    assert ExObfuscator.call(input, [:blacklisted_key]) == expected_output
+  end
+
   test "allows to completely drop a key"
   test "allows to force obfuscating the whole value of a specific key"
   test "allows to configure the visible string length"
