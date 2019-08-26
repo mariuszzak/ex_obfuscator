@@ -128,7 +128,16 @@ defmodule ExObfuscatorTest do
     assert ExObfuscator.call("FooBarBaz", [:foo]) == "Foo******"
   end
 
-  test "obfuscates a very long string value"
+  test "obfuscates and shortens a string having more than 20 chars" do
+    assert ExObfuscator.call("1234567890") == "123*******"
+    assert ExObfuscator.call("1234567890" <> "1234567890") == "123*****************"
+
+    shortened_value = "123*****************..."
+    assert ExObfuscator.call("1234567890" <> "1234567890" <> "1") == shortened_value
+    assert ExObfuscator.call("1234567890" <> "1234567890" <> "12") == shortened_value
+    assert ExObfuscator.call("1234567890" <> "1234567890" <> "123") == shortened_value
+    assert ExObfuscator.call("123" <> String.duplicate("a", 100_000)) == shortened_value
+  end
 
   test "obfuscates a numeric value" do
     assert ExObfuscator.call(123) == "***"

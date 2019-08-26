@@ -4,6 +4,9 @@ defprotocol ExObfuscator do
 end
 
 defimpl ExObfuscator, for: BitString do
+  @num_of_visible_chars 3
+  @max_string_length 20
+
   def call(val, _blacklist) do
     str_length = String.length(val)
 
@@ -14,8 +17,14 @@ defimpl ExObfuscator, for: BitString do
     end
   end
 
-  defp obfuscate(val, str_length),
-    do: String.slice(val, 0..2) <> String.duplicate("*", str_length - 3)
+  defp obfuscate(val, str_length) do
+    visible_chars(val) <> stars(str_length) <> maybe_dots(str_length)
+  end
+
+  defp visible_chars(val), do: String.slice(val, 0..(@num_of_visible_chars - 1))
+  defp stars(str_length), do: String.duplicate("*", min(str_length, @max_string_length) - 3)
+  defp maybe_dots(str_length) when str_length > @max_string_length, do: "..."
+  defp maybe_dots(_str_length), do: ""
 end
 
 defimpl ExObfuscator, for: [Map, List] do
