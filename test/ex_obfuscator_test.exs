@@ -421,7 +421,40 @@ defmodule ExObfuscatorTest do
     assert ExObfuscator.call(input, [:blacklisted]) == expected_output
   end
 
-  test "obfuscates a keyword list with nested maps"
+  test "obfuscates a keyword list with nested maps" do
+    input = [
+      regular_key: %{
+        blacklisted: ["foofoofoo", "barbarbar", "bazbazbaz"],
+        regular_key: "Other value"
+      }
+    ]
+
+    expected_output = [
+      regular_key: %{
+        regular_key: "Other value",
+        blacklisted: ["foo******", "bar******", "baz******"]
+      }
+    ]
+
+    assert ExObfuscator.call(input, [:blacklisted]) == expected_output
+
+    input = [
+      blacklisted: %{
+        blacklisted: ["foofoofoo", "barbarbar", "bazbazbaz"],
+        regular_key: "Other value"
+      }
+    ]
+
+    expected_output = [
+      blacklisted: %{
+        blacklisted: ["foo******", "bar******", "baz******"],
+        regular_key: "Oth********"
+      }
+    ]
+
+    assert ExObfuscator.call(input, [:blacklisted]) == expected_output
+  end
+
   test "obfuscates a very complex nested structure containing all possible types"
   test "obfuscates a camelCase keys even if blacklisted snake_case key"
   test "obfuscates a kebab-case keys even if blacklisted snake_case key"
