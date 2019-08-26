@@ -18,19 +18,27 @@ defimpl ExObfuscator, for: BitString do
     do: String.slice(val, 0..2) <> String.duplicate("*", str_length - 3)
 end
 
-defimpl ExObfuscator, for: List do
-  def call(val, _blacklist), do: val
-end
-
-defimpl ExObfuscator, for: Map do
+defimpl ExObfuscator, for: [Map, List] do
   def call(input, nil) do
     call(input, :all)
   end
 
-  def call(input, blacklisted_keys) do
+  def call(input, blacklisted_keys) when is_map(input), do: call(input, blacklisted_keys, %{})
+  def call(input, blacklisted_keys) when is_list(input), do: call(input, blacklisted_keys, [])
+
+  defp call(input, blacklisted_keys, final_type) do
     input
-    |> Enum.map(fn {key, val} -> maybe_obfuscate(key, val, blacklisted_keys) end)
-    |> Enum.into(%{})
+    |> obfuscate(blacklisted_keys)
+    |> Enum.into(final_type)
+  end
+
+  defp obfuscate(enum, blacklisted_keys) do
+    Enum.map(enum, fn element ->
+      case element do
+        {key, val} -> maybe_obfuscate(key, val, blacklisted_keys)
+        val -> ExObfuscator.call(val, blacklisted_keys)
+      end
+    end)
   end
 
   defp maybe_obfuscate(key, val, blacklisted_keys) do
@@ -38,10 +46,16 @@ defimpl ExObfuscator, for: Map do
       blacklisted_keys == :all ->
         {key, ExObfuscator.call(val)}
 
+      is_map(key) ->
+        {ExObfuscator.call(key, blacklisted_keys), ExObfuscator.call(val, blacklisted_keys)}
+
       to_string(key) in to_strings(blacklisted_keys) ->
         {key, ExObfuscator.call(val)}
 
       is_map(val) ->
+        {key, ExObfuscator.call(val, blacklisted_keys)}
+
+      is_tuple(val) ->
         {key, ExObfuscator.call(val, blacklisted_keys)}
 
       {key, val} ->
