@@ -717,7 +717,23 @@ defmodule ExObfuscatorTest do
     assert ExObfuscator.call(input, [:blacklisted_key]) == expected_output
   end
 
-  test "allows to completely drop a key"
+  test "allows to completely drop a key" do
+    input = %{
+      blacklisted_key1: "Some value",
+      blacklisted_key2: "Some value",
+      regular_key: "Other value"
+    }
+
+    expected_output = %{
+      blacklisted_key1: "Som*******",
+      regular_key: "Other value"
+    }
+
+    blacklist = [blacklisted_key1: :obfusacte, blacklisted_key2: :drop]
+
+    assert ExObfuscator.call(input, blacklist) == expected_output
+  end
+
   test "allows to force obfuscating the whole value of a specific key"
   test "allows to configure the visible string length"
   test "allows to configure the max length of obfuscated value"

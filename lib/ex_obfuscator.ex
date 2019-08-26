@@ -33,7 +33,12 @@ defimpl ExObfuscator, for: [Map, List] do
   end
 
   def call(input, blacklisted_keys) when is_map(input), do: call(input, blacklisted_keys, %{})
-  def call(input, blacklisted_keys) when is_list(input), do: call(input, blacklisted_keys, [])
+
+  def call(input, blacklisted_keys) when is_list(input) do
+    input
+    |> call(blacklisted_keys, [])
+    |> Enum.reverse()
+  end
 
   defp call(input, blacklisted_keys, final_type) do
     input
@@ -42,10 +47,15 @@ defimpl ExObfuscator, for: [Map, List] do
   end
 
   defp obfuscate(enum, blacklisted_keys) do
-    Enum.map(enum, fn element ->
+    Enum.reduce(enum, [], fn element, acc ->
       case element do
-        {key, val} -> maybe_obfuscate(key, val, blacklisted_keys)
-        val -> ExObfuscator.call(val, blacklisted_keys)
+        {key, val} ->
+          key
+          |> maybe_obfuscate(val, blacklisted_keys)
+          |> maybe_append_value(acc)
+
+        val ->
+          [ExObfuscator.call(val, blacklisted_keys) | acc]
       end
     end)
   end
@@ -57,6 +67,9 @@ defimpl ExObfuscator, for: [Map, List] do
 
       is_map(key) ->
         {ExObfuscator.call(key, blacklisted_keys), ExObfuscator.call(val, blacklisted_keys)}
+
+      should_drop_key?(key, blacklisted_keys) ->
+        nil
 
       key_is_blacklisted?(key, blacklisted_keys) ->
         {key, ExObfuscator.call(val)}
@@ -72,16 +85,30 @@ defimpl ExObfuscator, for: [Map, List] do
     end
   end
 
+  defp maybe_append_value(nil, acc), do: acc
+  defp maybe_append_value(val, acc), do: [val | acc]
+
   defp to_strings(list) when is_list(list), do: Enum.map(list, &to_string/1)
+
+  defp should_drop_key?(key, blacklisted_keys),
+    do: Keyword.keyword?(blacklisted_keys) && Keyword.get(blacklisted_keys, key) == :drop
 
   defp key_is_blacklisted?(key, blacklisted_keys) do
     # TODO: consider generating a list with all
     # blacklisted_keys with all variations of any "case" instead
     # of transforming each key into snake_case
     cond do
-      to_string(key) in to_strings(blacklisted_keys) -> true
-      to_string(to_snake_case(key)) in to_strings(blacklisted_keys) -> true
-      true -> false
+      Keyword.keyword?(blacklisted_keys) ->
+        key_is_blacklisted?(key, Keyword.keys(blacklisted_keys))
+
+      to_string(key) in to_strings(blacklisted_keys) ->
+        true
+
+      to_string(to_snake_case(key)) in to_strings(blacklisted_keys) ->
+        true
+
+      true ->
+        false
     end
   end
 
